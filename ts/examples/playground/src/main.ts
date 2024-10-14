@@ -20,6 +20,8 @@ import {
     createTypeChat,
     getContextFromHistory,
     promptLib,
+    lookupAnswersOnWeb,
+    WebLookupAnswer,
 } from "typeagent";
 import { PromptSection } from "typechat";
 import * as fs from "fs";
@@ -136,8 +138,23 @@ async function runPlayground(): Promise<void> {
             const response = chatResponse.data;
             io.writer.writeLine(response.message);
             if (response.lookups && response.lookups.length > 0) {
-                io.writer.writeLine("Lookups");
-                io.writer.writeList(response.lookups);
+                io.writer.writeLine("[Doing Lookups...]");
+                for (let i = 0; i < response.lookups.length; i++) {
+                    io.writer.writeLine(`[Lookup ${i + 1}: ${response.lookups[i]}]`);
+                    const answer: WebLookupAnswer = await lookupAnswersOnWeb(
+                        chatModel,
+                        response.lookups[0],
+                        5,
+                        {
+                            maxCharsPerChunk: 2000,
+                            maxTextLengthToSearch: 10000,
+                        },
+                        undefined,
+                        undefined,
+                        (item, index, result) => true,
+                    );
+                    io.writer.writeLine("\n" + answer.answer.answer);
+                }
             }
         } else {
             io.writer.writeLine(chatResponse.message);

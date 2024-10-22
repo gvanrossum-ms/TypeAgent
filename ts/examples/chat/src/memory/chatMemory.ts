@@ -59,20 +59,15 @@ export type ChatContext = {
     emailMemory: knowLib.conversation.ConversationManager;
 };
 
-enum ReservedConversationNames {
-    transcript = "transcript",
-    outlook = "outlook",
-    play = "play",
-    search = "search",
-}
+const reservedConversationNames: string[] = [
+    "transcript",
+    "outlook",
+    "play",
+    "search",
+];
 
 function isReservedConversation(context: ChatContext): boolean {
-    return (
-        context.conversationName === ReservedConversationNames.transcript ||
-        context.conversationName === ReservedConversationNames.play ||
-        context.conversationName === ReservedConversationNames.search ||
-        context.conversationName === ReservedConversationNames.outlook
-    );
+    return reservedConversationNames.includes(context.conversationName);
 }
 
 function getReservedConversation(
@@ -82,7 +77,7 @@ function getReservedConversation(
     switch (name) {
         default:
             break;
-        case ReservedConversationNames.outlook:
+        case "outlook":
             return context.emailMemory;
     }
     return undefined;
@@ -101,7 +96,7 @@ export async function createChatMemoryContext(
         openai.createEmbeddingModel(),
         64,
     );
-    const conversationName = ReservedConversationNames.transcript;
+    const conversationName = "transcript";
     const conversationSettings = createConversationSettings(embeddingModel);
 
     const conversationPath = path.join(storePath, conversationName);
@@ -133,7 +128,7 @@ export async function createChatMemoryContext(
         searcher: createSearchProcessor(conversation, chatModel, true, 16, 16),
         emailMemory: await knowLib.email.createEmailMemory(
             chatModel,
-            ReservedConversationNames.outlook,
+            "outlook",
             storePath,
             conversationSettings,
         ),

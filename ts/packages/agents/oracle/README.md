@@ -1,7 +1,8 @@
-# oracle
+# Oracle
 
 Oracle dispatcher agent.
-An "oracle" produces answers using a secret process.
+The "oracle" just prints fortune cookies.
+The code provides an example of how to to configure an agent to acceps "request" commands.
 
 ## Trademarks
 

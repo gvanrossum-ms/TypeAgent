@@ -55,10 +55,6 @@ class Collection[T, TOrdinal: int](ICollection[T, TOrdinal]):
         """Retrieve multiple items by their ordinals."""
         return [self._get(ordinal) for ordinal in ordinals]
 
-    def get_all(self) -> list[T]:
-        """Retrieve all items in the collection."""
-        return self.items
-
     @property
     def is_persistent(self) -> bool:
         return False

@@ -1,0 +1,75 @@
+{
+  "patterns": [
+    {
+      "category": "list_all",
+      "input": "List all books",
+      "output": {
+        "search_expressions": [{
+          "rewritten_query": "List all books",
+          "filters": [{
+            "entity_search_terms": [{"name": "*", "is_name_pronoun": false, "type": ["book"]}],
+            "search_terms": []
+          }]
+        }]
+      }
+    },
+    {
+      "category": "list_all", 
+      "input": "Find all movies",
+      "output": {
+        "search_expressions": [{
+          "rewritten_query": "Find all movies",
+          "filters": [{
+            "entity_search_terms": [{"name": "*", "is_name_pronoun": false, "type": ["movie"]}],
+            "search_terms": []
+          }]
+        }]
+      }
+    },
+    {
+      "category": "entity_by_creator",
+      "input": "Books by Tolkien", 
+      "output": {
+        "search_expressions": [{
+          "rewritten_query": "Books by Tolkien",
+          "filters": [{
+            "entity_search_terms": [
+              {"name": "Tolkien", "type": ["person"]},
+              {"name": "*", "type": ["book"]}
+            ],
+            "search_terms": []
+          }]
+        }]
+      }
+    },
+    {
+      "category": "action_query",
+      "input": "What did Einstein say about relativity?",
+      "output": {
+        "search_expressions": [{
+          "rewritten_query": "What did Einstein say about relativity?",
+          "filters": [{
+            "action_search_term": {
+              "actor_entities": [{"name": "Einstein", "type": ["person"]}],
+              "action_verbs": {"words": ["say"], "tense": "Past"}
+            },
+            "search_terms": ["relativity"]
+          }]
+        }]
+      }
+    },
+    {
+      "category": "topic_search",
+      "input": "Tell me about machine learning",
+      "output": {
+        "search_expressions": [{
+          "rewritten_query": "Tell me about machine learning", 
+          "filters": [{
+            "search_terms": ["machine learning"],
+            "entity_search_terms": []
+          }]
+        }]
+      }
+    }
+  ]
+}

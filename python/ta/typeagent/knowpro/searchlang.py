@@ -738,6 +738,7 @@ async def search_query_from_language(
     if use_pydai:
         import pydantic_ai.exceptions
         from ..pydai.generic_query import query_generic
+
         texts = []
         assert not model_instructions
         if time_range and time_range.get("content"):
@@ -746,10 +747,7 @@ async def search_query_from_language(
         try:
             result = await query_generic("\n".join(texts))
         except pydantic_ai.exceptions.AgentRunError as e:
-            raise
-            return typechat.Failure(
-                f"Failed to translate query '{query_text}': {e}"
-            )
+            return typechat.Failure(f"Failed to translate query '{query_text}': {e}")
         else:
             return typechat.Success(result)  # type: ignore  # Types are structurally compatible
     else:

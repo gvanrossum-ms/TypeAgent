@@ -54,14 +54,19 @@ Convert the user's natural language question into a structured SearchQuery.
 Follow the schema documentation exactly.
 
 CRITICAL RULES:
-1. Set rewritten_query to the original question with minor corrections (fix typos, remove "please") but NEVER omit meaningful phrases or time references!
+1. Set rewritten_query to the original question with minor corrections (fix typos, remove "please")
+   but NEVER omit meaningful phrases or time references!
 2. For time ranges like "first 15 minutes", ALWAYS include BOTH start_date AND stop_date!
 
 REQUIRED STRUCTURES:
 - EntityTerm: {{"name": "...", "is_name_pronoun": false, "type": ["book"], "facets": null}}
 - VerbsTerm: {{"words": ["mention"], "tense": "Past"}}
-- ActionTerm: {{"action_verbs": {{"words": ["referenced"], "tense": "Past"}}, "actor_entities": "*", "target_entities": [entity], "is_informational": false}}
-- time_range structure: {{"start_date": {{"date": {{"day": 1, "month": 5, "year": 2023}}, "time": {{"hour": 0, "minute": 0, "seconds": 0}}}}, "stop_date": {{"date": {{"day": 1, "month": 5, "year": 2023}}, "time": {{"hour": 0, "minute": 15, "seconds": 0}}}}}}
+- ActionTerm: {{"action_verbs": {{"words": ["referenced"], "tense": "Past"}},
+              "actor_entities": "*", "target_entities": [entity], "is_informational": false}}
+- time_range: {{"start_date": {{"date": {{"day": 1, "month": 4, "year": 2020}},
+                                "time": {{"hour": 9, "minute": 0, "seconds": 0}}}},
+                 "stop_date": {{"date": {{"day": 1, "month": 4, "year": 2020}},
+                                "time": {{"hour": 9, "minute": 30, "seconds": 0}}}}}}
 
 FIELD USAGE:
 - entity_search_terms: tangible things (people, places, books, etc.)
@@ -82,12 +87,14 @@ IMPORTANT: Questions like "How did X get [verb]?" should use action_search_term 
 
 TIME RANGE RULE:
 time_range is ONLY for message timestamps, NOT content attributes!
+- For relative times like "first 15 minutes", use the start of the CONVERSATION TIME RANGE as the reference.
 - USE: "first 15 minutes", "messages between 2-3pm"
 - DON'T USE: "published in 2008" (use entity facets instead)
 
 User question: {question}\
 """
 
+    # print(prompt)
     retries = 3
     for i in range(retries):
         try:

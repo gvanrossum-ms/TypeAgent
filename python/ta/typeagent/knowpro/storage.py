@@ -111,7 +111,7 @@ class ListStorageProvider(IStorageProvider):
 
     def create_semantic_ref_collection(self) -> SemanticRefCollection:
         """Create a new semantic reference collection."""
-        return []   # type: ignore[return-value]
+        return []  # type: ignore[return-value]
 
     def close(self) -> None:
         """Close the storage provider."""

@@ -15,13 +15,6 @@ class FacetTerm(BaseModel):
 
 
 class EntityTerm(BaseModel):
-    """
-    Use to find information about specific, tangible people, places, institutions or things only.
-    This includes entities with particular facets.
-    Abstract concepts or topics are not entityTerms. Use string for them.
-    Any terms will match fuzzily.
-    """
-
     name: str
     is_name_pronoun: bool | None
     type: list[str] | None = None
@@ -42,12 +35,6 @@ class ActionTerm(BaseModel):
 
 
 class SearchFilter(BaseModel):
-    """
-    Specifies the search terms for a search expression.
-    Make sure at least one field below is present and not None nor empty.
-    entity_search_terms cannot contain entities already in action_search_terms.
-    """
-
     action_search_term: ActionTerm | None = None
     entity_search_terms: list[EntityTerm] | None = None
     search_terms: list[str] | None = None

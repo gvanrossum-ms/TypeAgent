@@ -31,8 +31,7 @@ def make_agent() -> Agent[None, SearchQuery]:
     openai_api_key = getenv("OPENAI_API_KEY")
     azure_openai_api_key = getenv("AZURE_OPENAI_API_KEY")
     if openai_api_key:
-        model = OpenAIModel(
-            "gpt-4o")
+        model = OpenAIModel("gpt-4o")
     elif azure_openai_api_key:
         if azure_openai_api_key == "identity":
             token_provider = get_shared_token_provider()
@@ -46,7 +45,9 @@ def make_agent() -> Agent[None, SearchQuery]:
             ),
         )
     else:
-        raise RuntimeError("Neither OPENAI_API_KEY nor AZURE_OPENAI_API_KEY was provided.")
+        raise RuntimeError(
+            "Neither OPENAI_API_KEY nor AZURE_OPENAI_API_KEY was provided."
+        )
 
     return Agent(model, output_type=SearchQuery)
 

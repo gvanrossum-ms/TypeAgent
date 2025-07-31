@@ -1,7 +1,7 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel
 
 
 class DateVal(BaseModel):
@@ -11,7 +11,7 @@ class DateVal(BaseModel):
 
 
 class TimeVal(BaseModel):
-    hour: int = Field(description="In 24 hour form")
+    hour: int
     minute: int
     seconds: int
 

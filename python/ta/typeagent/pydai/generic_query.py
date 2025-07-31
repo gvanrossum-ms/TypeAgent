@@ -25,19 +25,25 @@ from .search_query_schema import SearchQuery
 
 def make_agent() -> Agent[None, SearchQuery]:
     """Create agent with schema-driven approach."""
-    api_key = getenv("AZURE_OPENAI_API_KEY")
-    if api_key == "identity":
-        token_provider = get_shared_token_provider()
-        api_key = token_provider.get_token()
-
-    model = OpenAIModel(
-        "gpt-4o",
-        provider=AzureProvider(
-            azure_endpoint=getenv("AZURE_OPENAI_ENDPOINT"),
-            api_version="2024-08-01-preview",
-            api_key=api_key,
-        ),
-    )
+    openai_api_key = getenv("OPENAI_API_KEY")
+    azure_openai_api_key = getenv("AZURE_OPENAI_API_KEY")
+    if openai_api_key:
+        model = OpenAIModel(
+            "gpt-4o")
+    elif azure_openai_api_key:
+        if azure_openai_api_key == "identity":
+            token_provider = get_shared_token_provider()
+            azure_openai_api_key = token_provider.get_token()
+        model = OpenAIModel(
+            "gpt-4o",
+            provider=AzureProvider(
+                azure_endpoint=getenv("AZURE_OPENAI_ENDPOINT"),
+                api_version="2024-08-01-preview",
+                api_key=azure_openai_api_key,
+            ),
+        )
+    else:
+        raise RuntimeError("Neither OPENAI_API_KEY nor AZURE_OPENAI_API_KEY was provided.")
 
     return Agent(model, output_type=SearchQuery)
 

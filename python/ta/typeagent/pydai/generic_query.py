@@ -13,6 +13,7 @@ import sys
 from os import getenv
 
 from dotenv import load_dotenv
+import logfire
 from pydantic_ai import Agent
 from pydantic_ai.models.openai import OpenAIModel
 from pydantic_ai.providers.azure import AzureProvider
@@ -23,6 +24,28 @@ from typeagent.aitools.auth import get_shared_token_provider
 
 from .prompts import BIG_PROMPT
 from .search_query_schema import SearchQuery
+
+
+def scrubbing_callback(m: logfire.ScrubMatch):
+    # if m.path == ('attributes', 'http.request.header.authorization'):
+    #     return m.value
+
+    # if m.path == ('attributes', 'http.request.header.api-key'):
+    #     return m.value
+
+    if (
+        m.path == ('attributes', 'http.request.body.text', 'messages', 0, 'content')
+        and m.pattern_match.group(0) == 'secret'
+    ):
+        return m.value
+
+    # if m.path == ('attributes', 'http.response.header.azureml-model-session'):
+    #     return m.value
+
+logfire.configure(scrubbing=logfire.ScrubbingOptions(callback=scrubbing_callback))
+
+logfire.instrument_pydantic_ai()
+logfire.instrument_httpx(capture_all=True)
 
 
 def make_agent() -> Agent[None, SearchQuery]:

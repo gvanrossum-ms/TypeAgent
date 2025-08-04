@@ -13,7 +13,6 @@ import sys
 from os import getenv
 
 from dotenv import load_dotenv
-from httpx import get
 from pydantic_ai import Agent
 from pydantic_ai.models.openai import OpenAIModel
 from pydantic_ai.providers.azure import AzureProvider

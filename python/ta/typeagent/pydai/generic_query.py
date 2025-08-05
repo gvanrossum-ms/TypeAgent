@@ -13,8 +13,7 @@ import sys
 from os import getenv
 
 from dotenv import load_dotenv
-import logfire
-from pydantic_ai import Agent
+from pydantic_ai import Agent, NativeOutput, ToolOutput
 from pydantic_ai.models.openai import OpenAIModel
 from pydantic_ai.providers.azure import AzureProvider
 
@@ -26,35 +25,11 @@ from .prompts import BIG_PROMPT
 from .search_query_schema import SearchQuery
 
 
-def scrubbing_callback(m: logfire.ScrubMatch):
-    # if m.path == ('attributes', 'http.request.header.authorization'):
-    #     return m.value
-
-    # if m.path == ('attributes', 'http.request.header.api-key'):
-    #     return m.value
-
-    if (
-        m.path == ('attributes', 'http.request.body.text', 'messages', 0, 'content')
-        and m.pattern_match.group(0) == 'secret'
-    ):
-        return m.value
-
-    # if m.path == ('attributes', 'http.response.header.azureml-model-session'):
-    #     return m.value
-
-logfire.configure(scrubbing=logfire.ScrubbingOptions(callback=scrubbing_callback))
-
-logfire.instrument_pydantic_ai()
-logfire.instrument_httpx(capture_all=True)
-
-
 def make_agent() -> Agent[None, SearchQuery]:
     """Create agent with schema-driven approach."""
-    openai_api_key = getenv("OPENAI_API_KEY")
-    azure_openai_api_key = getenv("AZURE_OPENAI_API_KEY")
-    if openai_api_key:
+    if openai_api_key := getenv("OPENAI_API_KEY"):
         model = OpenAIModel("gpt-4o")
-    elif azure_openai_api_key:
+    elif azure_openai_api_key := getenv("AZURE_OPENAI_API_KEY"):
         if azure_openai_api_key == "identity":
             token_provider = get_shared_token_provider()
             azure_openai_api_key = token_provider.get_token()
@@ -71,7 +46,7 @@ def make_agent() -> Agent[None, SearchQuery]:
             "Neither OPENAI_API_KEY nor AZURE_OPENAI_API_KEY was provided."
         )
 
-    return Agent(model, output_type=SearchQuery)
+    return Agent(model, output_type=ToolOutput(SearchQuery, strict=True), retries=2)
 
 
 async def query_generic(
@@ -85,18 +60,19 @@ async def query_generic(
         for section in prompt_preamble:
             texts.append(section["content"])
     texts.append(question)
-    prompt = "User question: " + " ".join(texts)
+    prompt = " ".join(texts)
 
     # print(prompt)
-    retries = 3
-    for i in range(retries):
+    retries = 1
+    for i in reversed(range(retries)):
         try:
             result = await agent.run(prompt)
             print(result.usage())
             return result.output
         except Exception as e:
-            print(f"### Attempt {i + 1} failed: {e}")
-            if i + 1 == retries:
+            if retries > 1:
+                print(f"### Attempt {retries - i}/{retries} failed: {e}")
+            if i == 0:
                 raise
 
 

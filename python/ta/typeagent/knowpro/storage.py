@@ -137,7 +137,7 @@ def get_batches_from_collection[T](
     """Generate batches of items from a collection."""
     start_at = start_at_ordinal
     while True:
-        batch = collection._get_slice(start_at, start_at + batch_size)
+        batch = collection[start_at : start_at + batch_size]
         if not batch:
             break
         yield Batch(start_at=start_at, value=batch)

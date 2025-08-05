@@ -743,7 +743,7 @@ async def search_query_from_language(
         from ..pydai.prompts import BIG_PROMPT
 
         prompt_preamble.append(
-            typechat.PromptSection(role="assistant", content=BIG_PROMPT)
+            typechat.PromptSection(role="system", content=BIG_PROMPT)
         )
     if time_range:
         prompt_preamble.append(time_range)

@@ -83,14 +83,9 @@ async def query_generic(
     texts = []
     if prompt_preamble:
         for section in prompt_preamble:
-            if section["role"] == "system":
-                # For now, we assume there is only one system prompt.
-                # The new prompt is BIG_PROMPT.
-                pass
-            else:
-                texts.append(section["content"])
+            texts.append(section["content"])
     texts.append(question)
-    prompt = BIG_PROMPT + "\n\nUser question: " + " ".join(texts)
+    prompt = "User question: " + " ".join(texts)
 
     # print(prompt)
     retries = 3

@@ -752,7 +752,9 @@ async def search_query_from_language(
         from ..pydai.generic_query import query_generic
 
         try:
-            result = await query_generic(query_text, prompt_preamble)
+            result = await query_generic(
+                f"\n\nUser question: {query_text}", prompt_preamble
+            )
         except pydantic_ai.exceptions.AgentRunError as e:
             return typechat.Failure(f"Failed to translate query '{query_text}': {e}")
         else:

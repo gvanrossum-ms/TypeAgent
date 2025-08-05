@@ -97,7 +97,7 @@ async def query_generic(
     for i in range(retries):
         try:
             result = await agent.run(prompt)
-            # print(result.usage())
+            print(result.usage())
             return result.output
         except Exception as e:
             print(f"### Attempt {i + 1} failed: {e}")

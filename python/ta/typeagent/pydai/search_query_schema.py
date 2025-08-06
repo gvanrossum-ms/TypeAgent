@@ -125,15 +125,15 @@ class SearchFilter(BaseModel):
     time_range: DateTimeRange | None = Field(
         default=None,
         description=(
-            "Use only if request explicitly asks for time range, particular year, month etc.\n"
-            "in this time range."
+            "Use for times relative to the CONVERSATION TIME RANGE, only if the user asks for one.\n"
+            "Provide both start_date and end_date."
         ),
     )
 
 
 class SearchExpr(BaseModel):
     rewritten_query: str
-    filters: list[SearchFilter]
+    filters: list[SearchFilter] = Field(description="At least one item")
 
 
 class SearchQuery(BaseModel):

@@ -44,12 +44,12 @@ def make_agent() -> Agent[None, SearchQuery]:
 
         print(f"## {azure_endpoint} ##")
         m = re.search(r"api-version=([\d-]+(?:preview)?)", azure_endpoint)
-        assert m, azure_endpoint
+        if not m:
+            raise RuntimeError(
+                f"AZURE_OPENAI_ENDPOINT has no valid api-version field: {azure_endpoint}"
+            )
         api_version = m.group(1)
-        if api_version == "2024-08-01-preview":
-            Wrapper = ToolOutput
-        else:
-            Wrapper = NativeOutput
+        Wrapper = ToolOutput
 
         print(f"## Using Azure {api_version} with {Wrapper.__name__} ##")
         model = OpenAIModel(

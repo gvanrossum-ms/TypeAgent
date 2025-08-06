@@ -29,6 +29,8 @@ def make_agent() -> Agent[None, SearchQuery]:
     """Create agent with schema-driven approach."""
     if openai_api_key := getenv("OPENAI_API_KEY"):
         model = OpenAIModel("gpt-4o")
+        Wrapper = NativeOutput
+
     elif azure_openai_api_key := getenv("AZURE_OPENAI_API_KEY"):
         if azure_openai_api_key == "identity":
             token_provider = get_shared_token_provider()
@@ -41,12 +43,14 @@ def make_agent() -> Agent[None, SearchQuery]:
                 api_key=azure_openai_api_key,
             ),
         )
+        Wrapper = ToolOutput
+
     else:
         raise RuntimeError(
             "Neither OPENAI_API_KEY nor AZURE_OPENAI_API_KEY was provided."
         )
 
-    return Agent(model, output_type=ToolOutput(SearchQuery, strict=True), retries=2)
+    return Agent(model, output_type=Wrapper(SearchQuery, strict=True), retries=2)
 
 
 async def query_generic(

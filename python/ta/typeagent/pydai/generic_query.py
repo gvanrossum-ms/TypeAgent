@@ -9,10 +9,10 @@ The schema descriptions in search_query_schema.py provide all the guidance neede
 
 import asyncio
 import json
+import re
 import sys
 from os import getenv
 
-from dotenv import load_dotenv
 from pydantic_ai import Agent, NativeOutput, ToolOutput
 from pydantic_ai.models.openai import OpenAIModel
 from pydantic_ai.providers.azure import AzureProvider
@@ -28,29 +28,45 @@ from .search_query_schema import SearchQuery
 def make_agent() -> Agent[None, SearchQuery]:
     """Create agent with schema-driven approach."""
     if openai_api_key := getenv("OPENAI_API_KEY"):
-        model = OpenAIModel("gpt-4o")
         Wrapper = NativeOutput
+        print(f"## Using OpenAI with {Wrapper.__name__} ##")
+        model = OpenAIModel("gpt-4o")
 
     elif azure_openai_api_key := getenv("AZURE_OPENAI_API_KEY"):
+        # This section is rather specific to our team's setup  at Microsoft.
         if azure_openai_api_key == "identity":
             token_provider = get_shared_token_provider()
             azure_openai_api_key = token_provider.get_token()
+
+        azure_endpoint = getenv("AZURE_OPENAI_ENDPOINT")
+        if not azure_endpoint:
+            raise RuntimeError("AZURE_OPENAI_ENDPOINT not found")
+
+        print(f"## {azure_endpoint} ##")
+        m = re.search(r"api-version=([\d-]+(?:preview)?)", azure_endpoint)
+        assert m, azure_endpoint
+        api_version = m.group(1)
+        if api_version == "2024-08-01-preview":
+            Wrapper = ToolOutput
+        else:
+            Wrapper = NativeOutput
+
+        print(f"## Using Azure {api_version} with {Wrapper.__name__} ##")
         model = OpenAIModel(
             "gpt-4o",
             provider=AzureProvider(
-                azure_endpoint=getenv("AZURE_OPENAI_ENDPOINT"),
-                api_version="2024-08-01-preview",
+                azure_endpoint=azure_endpoint,
+                api_version=api_version,
                 api_key=azure_openai_api_key,
             ),
         )
-        Wrapper = ToolOutput
 
     else:
         raise RuntimeError(
             "Neither OPENAI_API_KEY nor AZURE_OPENAI_API_KEY was provided."
         )
 
-    return Agent(model, output_type=Wrapper(SearchQuery, strict=True), retries=2)
+    return Agent(model, output_type=Wrapper(SearchQuery, strict=True), retries=3)
 
 
 async def query_generic(
@@ -100,5 +116,7 @@ def main() -> None:
 
 
 if __name__ == "__main__":
+    from dotenv import load_dotenv
+
     load_dotenv("../../ts/.env")
     main()

@@ -6,6 +6,7 @@ CRITICAL RULES:
 1. Set rewritten_query to the original question with minor corrections (fix typos, remove "please")
    but NEVER omit meaningful phrases or time references!
 2. For time ranges like "first 15 minutes", ALWAYS include BOTH start_date AND stop_date!
+3. At least one SearchFilter must be present, and each SearchFilter must have at least one non-trivial field (not null or []).
 
 REQUIRED STRUCTURES:
 - EntityTerm: {"name": "...", "is_name_pronoun": false, "type": ["book"], "facets": null}

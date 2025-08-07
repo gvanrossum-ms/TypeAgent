@@ -25,8 +25,9 @@ export interface MemorySettings {
 export function createMemorySettings(
     embeddingCacheSize = 64,
     getPersistentCache?: () => TextEmbeddingCache | undefined,
+    languageModel?: ChatModel,
 ): MemorySettings {
-    const languageModel = openai.createChatModelDefault("conversation-memory");
+    languageModel ??= openai.createChatModelDefault("conversation-memory");
     /**
      * Our index already has embeddings for every term in the podcast
      * Create a caching embedding model that can just leverage those embeddings
@@ -128,7 +129,7 @@ export class Message<TMeta extends MessageMetadata = MessageMetadata>
     constructor(
         public metadata: TMeta,
         messageBody: string | string[],
-        public tags: string[] = [],
+        public tags: string[] | kp.MessageTag[] = [],
         public timestamp: string | undefined = undefined,
         public knowledge: kpLib.KnowledgeResponse | undefined = undefined,
         public deletionInfo: kp.DeletionInfo | undefined = undefined,

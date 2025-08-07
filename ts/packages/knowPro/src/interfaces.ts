@@ -50,8 +50,7 @@ export interface IMessage extends IKnowledgeSource {
     /**
      * (Optional) tags associated with the message
      */
-    tags: string[];
-    sTags?: StructuredTag[] | undefined;
+    tags: string[] | MessageTag[];
     /**
      * (Future) Information about the deletion of the message.
      */
@@ -144,6 +143,8 @@ export interface Tag {
 }
 
 export type StructuredTag = kpLib.ConcreteEntity;
+
+export type MessageTag = string | StructuredTag;
 
 /**
  * A conversation is a sequence of messages
@@ -642,7 +643,8 @@ export type WhenFilter = {
      * Scope matches to only those text ranges matching tags
      */
     tags?: string[] | undefined;
-    sTags?: SearchTermGroup | undefined; // Experimental
+    // Experimental: scope matches to sTags and tags matching this term group
+    tagMatchingTerms?: SearchTermGroup | undefined;
     /**
      * Use this SearchTermGroup as a sub-query to find matching text ranges
      * Match SemanticRefs the scope for this query

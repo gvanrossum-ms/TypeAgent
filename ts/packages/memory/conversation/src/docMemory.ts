@@ -24,12 +24,10 @@ export class DocPartMeta extends MessageMetadata {
  * Use tags to annotate headings, etc.
  */
 export class DocPart extends Message<DocPartMeta> {
-    public sTags?: kp.StructuredTag[] | undefined;
-
     constructor(
         textChunks: string | string[] = [],
         metadata?: DocPartMeta | undefined,
-        tags?: string[] | undefined,
+        tags?: string[] | kp.MessageTag[] | undefined,
         timestamp?: string | undefined,
         knowledge?: kpLib.conversation.KnowledgeResponse | undefined,
         deletionInfo: kp.DeletionInfo | undefined = undefined,
@@ -73,11 +71,12 @@ export class DocMemory
         settings?: DocMemorySettings,
         tags?: string[],
     ) {
-        settings ??= createTextMemorySettings(
-            64,
-            () => this.secondaryIndexes.termToRelatedTermsIndex.fuzzyIndex,
-        );
-        super(settings ?? createTextMemorySettings(), nameTag, tags);
+        settings ??= createTextMemorySettings();
+        if (!settings.embeddingModel.getPersistentCache) {
+            settings.embeddingModel.getPersistentCache = () =>
+                this.secondaryIndexes.termToRelatedTermsIndex.fuzzyIndex;
+        }
+        super(settings, nameTag, tags);
         this.messages = new kp.MessageCollection<DocPart>(docParts);
         this.semanticRefs = new kp.SemanticRefCollection();
 
@@ -314,8 +313,9 @@ export class DocMemory
     public static async readFromFile(
         dirPath: string,
         baseFileName: string,
+        settings?: DocMemorySettings,
     ): Promise<DocMemory | undefined> {
-        const docMemory = new DocMemory();
+        const docMemory = new DocMemory(undefined, undefined, settings);
         const data = await kp.readConversationDataFromFile(
             dirPath,
             baseFileName,
@@ -383,6 +383,5 @@ function docPartClassFromJsonObj(jMsg: DocPart): DocPart {
         jMsg.knowledge,
         jMsg.deletionInfo,
     );
-    part.sTags = jMsg.sTags;
     return part;
 }

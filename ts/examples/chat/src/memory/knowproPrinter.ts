@@ -20,7 +20,7 @@ export class KnowProPrinter extends MemoryConsoleWriter {
         writer: (printer: KnowProPrinter, item: any) => void,
     ) {
         for (let i = 0; i < array.length; ++i) {
-            this.write(`${i}. `);
+            this.write(`${i + 1}. `);
             writer(this, array[i]);
         }
         return this;
@@ -64,7 +64,7 @@ export class KnowProPrinter extends MemoryConsoleWriter {
         try {
             this.writeNameValue("Timestamp", message.timestamp);
             if (message.tags && message.tags.length > 0) {
-                this.writeList(message.tags, { type: "csv", title: "Tags" });
+                this.writeMessageTags(message.tags);
             }
             this.writeMetadata(message);
         } finally {
@@ -132,6 +132,24 @@ export class KnowProPrinter extends MemoryConsoleWriter {
         this.writeLine();
     }
 
+    public writeMessageTags(tags: string[] | kp.MessageTag[] | undefined) {
+        if (tags && tags.length > 0) {
+            const stringTags: string[] = tags.filter(
+                (t) => typeof t === "string",
+            ) as string[];
+            if (stringTags && stringTags.length > 0) {
+                this.writeList(stringTags, { type: "csv", title: "Tags" });
+            }
+            const sTags: kp.StructuredTag[] = tags.filter(
+                (t) => typeof t !== "string",
+            ) as kp.StructuredTag[];
+            if (sTags && sTags.length > 0) {
+                this.writeLine("sTags");
+                this.writeStructuredTags(sTags);
+            }
+        }
+    }
+
     public writeEntity(
         entity: knowLib.conversation.ConcreteEntity | undefined,
     ): KnowProPrinter {
@@ -190,6 +208,12 @@ export class KnowProPrinter extends MemoryConsoleWriter {
             this.writeList(tagStrings, { type: "ol" });
         }
         return this;
+    }
+
+    public writeStructuredTags(tags: kp.StructuredTag[] | undefined) {
+        return this.writeEntities(
+            tags as knowLib.conversation.ConcreteEntity[],
+        );
     }
 
     public writeSemanticRef(semanticRef: kp.SemanticRef) {
@@ -325,6 +349,13 @@ export class KnowProPrinter extends MemoryConsoleWriter {
             results,
             maxToDisplay,
         );
+        this.writeKnowledgeSearchResult(
+            conversation,
+            "sTag",
+            results,
+            maxToDisplay,
+        );
+
         if (distinct) {
             this.writeResultDistinct(
                 conversation,
@@ -660,7 +691,7 @@ export class KnowProPrinter extends MemoryConsoleWriter {
         }
         if (docPart.tags && docPart.tags.length > 0) {
             this.writeLineInColor(chalk.cyan, "Tags");
-            this.writeList(docPart.tags, { type: "csv" });
+            this.writeMessageTags(docPart.tags);
         }
         this.writeKnowledge(docPart.knowledge);
         return this;

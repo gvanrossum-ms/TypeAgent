@@ -110,7 +110,7 @@ export class ChatView {
             if (this.partialCompletion) {
                 console.log(`Partial completion on change: ${isInput}`);
                 if (isInput) {
-                    this.partialCompletion.update();
+                    this.partialCompletion.update(true);
                 } else {
                     this.partialCompletion.close();
                 }
@@ -248,7 +248,7 @@ export class ChatView {
         }
     }
 
-    enablePartialInput(enabled: boolean) {
+    public enablePartialInput(enabled: boolean) {
         this.partialCompletionEnabled = enabled;
         if (enabled) {
             this.ensurePartialCompletion();

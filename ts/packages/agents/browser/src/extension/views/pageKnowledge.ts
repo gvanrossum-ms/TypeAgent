@@ -3,7 +3,7 @@
 
 import {
     notificationManager,
-    chromeExtensionService,
+    extensionService,
     TemplateHelpers,
     FormatUtils,
     EventManager,
@@ -54,7 +54,7 @@ interface Relationship {
 }
 
 interface ExtractionSettings {
-    mode: "basic" | "summary" | "content" | "actions" | "full";
+    mode: "basic" | "summary" | "content" | "full";
 }
 
 interface ExtractionModeInfo {
@@ -89,16 +89,6 @@ const MODE_DESCRIPTIONS: Record<string, ExtractionModeInfo> = {
             "Topic identification",
         ],
         performance: "Fast",
-    },
-    macros: {
-        description: "AI analysis plus interaction detection for dynamic pages",
-        requiresAI: true,
-        features: [
-            "AI content analysis",
-            "Macros detection",
-            "Interactive elements",
-        ],
-        performance: "Medium",
     },
     full: {
         description:
@@ -176,13 +166,7 @@ class KnowledgePanel {
             .getElementById("extractionMode")!
             .addEventListener("input", (e) => {
                 const slider = e.target as HTMLInputElement;
-                const modeMap = [
-                    "basic",
-                    "summary",
-                    "content",
-                    "macros",
-                    "full",
-                ];
+                const modeMap = ["basic", "summary", "content", "full"];
                 const mode = modeMap[parseInt(slider.value)] as any;
                 slider.setAttribute("data-mode", mode);
                 this.updateExtractionMode(mode);
@@ -195,13 +179,7 @@ class KnowledgePanel {
                 const slider = document.getElementById(
                     "extractionMode",
                 ) as HTMLInputElement;
-                const modeMap = [
-                    "basic",
-                    "summary",
-                    "content",
-                    "macros",
-                    "full",
-                ];
+                const modeMap = ["basic", "summary", "content", "full"];
                 slider.value = index.toString();
                 slider.setAttribute("data-mode", modeMap[index]);
                 this.updateExtractionMode(modeMap[index] as any);
@@ -216,7 +194,7 @@ class KnowledgePanel {
 
     private async loadCurrentPageInfo() {
         try {
-            const tab = await chromeExtensionService.getCurrentTab();
+            const tab = await extensionService.getCurrentTab();
             if (tab) {
                 this.currentUrl = tab.url || "";
 
@@ -237,7 +215,7 @@ class KnowledgePanel {
 
     private async getPageIndexStatus(retryCount: number = 0): Promise<string> {
         try {
-            const response = await chromeExtensionService.getPageIndexStatus(
+            const response = await extensionService.getPageIndexStatus(
                 this.currentUrl,
             );
 
@@ -290,7 +268,7 @@ class KnowledgePanel {
 
     private async refreshPageStatusAfterIndexing() {
         try {
-            const tab = await chromeExtensionService.getCurrentTab();
+            const tab = await extensionService.getCurrentTab();
             if (tab) {
                 this.currentUrl = tab.url || "";
 
@@ -316,7 +294,7 @@ class KnowledgePanel {
 
     private async loadAutoIndexSetting() {
         try {
-            const enabled = await chromeExtensionService.getAutoIndexSetting();
+            const enabled = await extensionService.getAutoIndexSetting();
             const toggle = document.getElementById(
                 "autoIndexToggle",
             ) as HTMLInputElement;
@@ -328,7 +306,7 @@ class KnowledgePanel {
 
     private async toggleAutoIndex(enabled: boolean) {
         try {
-            await chromeExtensionService.setAutoIndexSetting(enabled);
+            await extensionService.setAutoIndexSetting(enabled);
 
             // Update status indicator
             const statusText = enabled
@@ -340,7 +318,7 @@ class KnowledgePanel {
             );
 
             // Notify background script
-            await chromeExtensionService.notifyAutoIndexSettingChanged(enabled);
+            await extensionService.notifyAutoIndexSettingChanged(enabled);
         } catch (error) {
             console.error("Error toggling auto-index:", error);
         }
@@ -380,7 +358,7 @@ class KnowledgePanel {
 
             const startTime = Date.now();
 
-            const response = await chromeExtensionService.extractPageKnowledge(
+            const response = await extensionService.extractPageKnowledge(
                 this.currentUrl,
                 this.extractionSettings.mode,
                 this.extractionSettings,
@@ -508,7 +486,7 @@ class KnowledgePanel {
 
             const startTime = Date.now();
 
-            const response = await chromeExtensionService.indexPageContent(
+            const response = await extensionService.indexPageContent(
                 this.currentUrl,
                 this.extractionSettings.mode,
             );
@@ -529,10 +507,9 @@ class KnowledgePanel {
             while (attempts < maxAttempts) {
                 await new Promise((resolve) => setTimeout(resolve, 500));
                 try {
-                    const status =
-                        await chromeExtensionService.getPageIndexStatus(
-                            this.currentUrl,
-                        );
+                    const status = await extensionService.getPageIndexStatus(
+                        this.currentUrl,
+                    );
                     if (status.isIndexed && status.entityCount !== undefined) {
                         actualEntityCount = status.entityCount;
                         break;
@@ -604,7 +581,7 @@ class KnowledgePanel {
         queryResults.innerHTML = TemplateHelpers.createSearchLoadingState();
 
         try {
-            const response = await chromeExtensionService.queryKnowledge({
+            const response = await extensionService.queryKnowledge({
                 query: query,
                 url: this.currentUrl,
                 searchScope: "current_page",
@@ -702,20 +679,52 @@ class KnowledgePanel {
         `;
     }
 
+    // Helper functions to check if modules have meaningful data
+    private hasContentMetrics(knowledge: KnowledgeData): boolean {
+        return !!(
+            knowledge.contentMetrics &&
+            (knowledge.contentMetrics.readingTime > 0 ||
+                knowledge.contentMetrics.wordCount > 0)
+        );
+    }
+
+    private hasRelatedContent(knowledge: KnowledgeData): boolean {
+        // Check if there's any meaningful related content to show
+        // This could be expanded based on what constitutes "related content"
+        // For now, return false to hide by default until we have actual related content logic
+        return false;
+    }
+
+    private renderRelatedContent(knowledge: KnowledgeData) {
+        const container = document.getElementById("relatedContentContainer")!;
+        // Since hasRelatedContent returns false, this method won't be called
+        // But we include it for completeness and future expansion
+        container.innerHTML = `
+            <div class="text-muted text-center">
+                <i class="bi bi-info-circle"></i>
+                No related content available
+            </div>
+        `;
+    }
+
     private async renderKnowledgeResults(knowledge: KnowledgeData) {
         const knowledgeSection = document.getElementById("knowledgeSection")!;
         knowledgeSection.className = "";
         knowledgeSection.innerHTML = `
-            ${knowledge.contentMetrics ? this.renderContentMetricsCard() : ""}
-            ${this.renderRelatedContentCard()}
+            ${this.hasContentMetrics(knowledge) ? this.renderContentMetricsCard() : ""}
+            ${this.hasRelatedContent(knowledge) ? this.renderRelatedContentCard() : ""}
             ${this.renderEntitiesCard()}
             ${this.renderRelationshipsCard()}
             ${this.renderTopicsCard()}
             ${knowledge.detectedActions && knowledge.detectedActions.length > 0 ? this.renderUserActionsCard() : ""}
         `;
 
-        if (knowledge.contentMetrics) {
+        if (this.hasContentMetrics(knowledge)) {
             this.renderContentMetrics(knowledge.contentMetrics);
+        }
+
+        if (this.hasRelatedContent(knowledge)) {
+            this.renderRelatedContent(knowledge);
         }
 
         this.renderEntities(knowledge.entities);
@@ -838,7 +847,7 @@ class KnowledgePanel {
                     }, 300);
 
                     // Open the page in a new tab
-                    chromeExtensionService.createTab(url, false);
+                    extensionService.createTab(url, false);
                 }
             }
 
@@ -860,7 +869,7 @@ class KnowledgePanel {
                     }, 300);
 
                     // Open the source in a new tab
-                    chromeExtensionService.createTab(url, false);
+                    extensionService.createTab(url, false);
                 }
             }
 
@@ -925,8 +934,7 @@ class KnowledgePanel {
 
     private async loadExtractionSettings() {
         try {
-            const settings =
-                await chromeExtensionService.getExtractionSettings();
+            const settings = await extensionService.getExtractionSettings();
             if (settings) {
                 this.extractionSettings = {
                     ...this.extractionSettings,
@@ -937,13 +945,7 @@ class KnowledgePanel {
                     "extractionMode",
                 ) as HTMLInputElement;
                 if (slider && this.extractionSettings.mode) {
-                    const modeMap = [
-                        "basic",
-                        "summary",
-                        "content",
-                        "actions",
-                        "full",
-                    ];
+                    const modeMap = ["basic", "summary", "content", "full"];
                     const value = modeMap.indexOf(this.extractionSettings.mode);
                     slider.value = value.toString();
                     slider.setAttribute(
@@ -1028,7 +1030,7 @@ class KnowledgePanel {
 
     private async checkConnectionStatus() {
         try {
-            const response = await chromeExtensionService.checkConnection();
+            const response = await extensionService.checkConnection();
 
             this.isConnected = response.connected;
             this.updateConnectionStatus();
@@ -1063,7 +1065,7 @@ class KnowledgePanel {
 
     private async loadFreshKnowledge() {
         try {
-            const indexStatus = await chromeExtensionService.getPageIndexStatus(
+            const indexStatus = await extensionService.getPageIndexStatus(
                 this.currentUrl,
             );
 
@@ -1114,10 +1116,9 @@ class KnowledgePanel {
 
     private async loadIndexedKnowledge() {
         try {
-            const response =
-                await chromeExtensionService.getPageIndexedKnowledge(
-                    this.currentUrl,
-                );
+            const response = await extensionService.getPageIndexedKnowledge(
+                this.currentUrl,
+            );
 
             if (response.isIndexed && response.knowledge) {
                 this.knowledgeData = response.knowledge;
@@ -1554,7 +1555,7 @@ class KnowledgePanel {
     }
 
     private updateExtractionMode(
-        mode: "basic" | "summary" | "content" | "actions" | "full",
+        mode: "basic" | "summary" | "content" | "full",
     ) {
         this.extractionSettings.mode = mode;
 
@@ -1607,8 +1608,7 @@ class KnowledgePanel {
 
     private async checkAIModelAvailability() {
         try {
-            const response =
-                await chromeExtensionService.checkAIModelAvailability();
+            const response = await extensionService.checkAIModelAvailability();
 
             this.aiModelAvailable = response.available || false;
         } catch (error) {
@@ -1634,7 +1634,7 @@ class KnowledgePanel {
                         <button class="btn btn-primary btn-sm" onclick="switchToBasicMode()">
                             <i class="bi bi-lightning me-2"></i>Switch to Basic Mode
                         </button>
-                        <button class="btn btn-outline-secondary btn-sm" onclick="chromeExtensionService.openOptionsPage()">
+                        <button class="btn btn-outline-secondary btn-sm" onclick="extensionService.openOptionsPage()">
                             <i class="bi bi-gear me-2"></i>Configure AI Model
                         </button>
                     </div>
@@ -1657,7 +1657,7 @@ class KnowledgePanel {
 
     private async saveExtractionSettings() {
         try {
-            await chromeExtensionService.saveExtractionSettings(
+            await extensionService.saveExtractionSettings(
                 this.extractionSettings,
             );
         } catch (error) {

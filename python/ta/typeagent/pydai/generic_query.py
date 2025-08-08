@@ -13,67 +13,19 @@ import re
 import sys
 from os import getenv
 
-from pydantic_ai import Agent, NativeOutput, ToolOutput
-from pydantic_ai.models.openai import OpenAIModel
-from pydantic_ai.providers.azure import AzureProvider
-
 import typechat
 
-from typeagent.aitools.auth import get_shared_token_provider
+from typeagent.aitools.utils import make_agent
 
 from .prompts import BIG_PROMPT
 from .search_query_schema import SearchQuery
-
-
-def make_agent() -> Agent[None, SearchQuery]:
-    """Create agent with schema-driven approach."""
-    if openai_api_key := getenv("OPENAI_API_KEY"):
-        Wrapper = NativeOutput
-        print(f"## Using OpenAI with {Wrapper.__name__} ##")
-        model = OpenAIModel("gpt-4o")
-
-    elif azure_openai_api_key := getenv("AZURE_OPENAI_API_KEY"):
-        # This section is rather specific to our team's setup  at Microsoft.
-        if azure_openai_api_key == "identity":
-            token_provider = get_shared_token_provider()
-            azure_openai_api_key = token_provider.get_token()
-
-        azure_endpoint = getenv("AZURE_OPENAI_ENDPOINT")
-        if not azure_endpoint:
-            raise RuntimeError("AZURE_OPENAI_ENDPOINT not found")
-
-        print(f"## {azure_endpoint} ##")
-        m = re.search(r"api-version=([\d-]+(?:preview)?)", azure_endpoint)
-        if not m:
-            raise RuntimeError(
-                f"AZURE_OPENAI_ENDPOINT has no valid api-version field: {azure_endpoint}"
-            )
-        api_version = m.group(1)
-        Wrapper = ToolOutput
-
-        print(f"## Using Azure {api_version} with {Wrapper.__name__} ##")
-        model = OpenAIModel(
-            "gpt-4o",
-            provider=AzureProvider(
-                azure_endpoint=azure_endpoint,
-                api_version=api_version,
-                api_key=azure_openai_api_key,
-            ),
-        )
-
-    else:
-        raise RuntimeError(
-            "Neither OPENAI_API_KEY nor AZURE_OPENAI_API_KEY was provided."
-        )
-
-    return Agent(model, output_type=Wrapper(SearchQuery, strict=True), retries=3)
 
 
 async def query_generic(
     question: str, prompt_preamble: list[typechat.PromptSection] | None = None
 ) -> SearchQuery:
     """Convert question to SearchQuery using an LLM."""
-    agent = make_agent()
+    agent = make_agent(SearchQuery)
 
     texts = []
     if prompt_preamble:
@@ -81,8 +33,8 @@ async def query_generic(
             texts.append(section["content"])
     texts.append(question)
     prompt = " ".join(texts)
-
     # print(prompt)
+
     retries = 1
     for i in reversed(range(retries)):
         try:
@@ -94,6 +46,10 @@ async def query_generic(
                 print(f"### Attempt {retries - i}/{retries} failed: {e}")
             if i == 0:
                 raise
+
+    raise RuntimeError(
+        f"Failed to convert question to SearchQuery after {retries} retries."
+    )
 
 
 def main() -> None:

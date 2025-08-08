@@ -732,32 +732,14 @@ async def search_query_from_language(
     translator: SearchQueryTranslator,
     query_text: str,
     model_instructions: list[typechat.PromptSection] | None = None,
-    use_pydantic_ai: bool = True,  # False for typechat; implies use_big_prompt
-    use_big_prompt: bool = True,  # For typechat: False to use default prompt
 ) -> typechat.Result[SearchQuery]:
     time_range = get_time_range_prompt_section_for_conversation(conversation)
     prompt_preamble: list[typechat.PromptSection] = []
     if model_instructions:
         prompt_preamble.extend(model_instructions)
-    if use_pydantic_ai or use_big_prompt:
-        from ..pydai.prompts import BIG_PROMPT
-
-        prompt_preamble.append(
-            typechat.PromptSection(role="system", content=BIG_PROMPT)
-        )
     if time_range:
         prompt_preamble.append(time_range)
-    if use_pydantic_ai:
-        import pydantic_ai.exceptions
-        from ..pydai.generic_query import query_generic
-
-        try:
-            result = await query_generic(
-                f"\n\nUser question: {query_text}", prompt_preamble
-            )
-        except pydantic_ai.exceptions.AgentRunError as e:
-            return typechat.Failure(f"Failed to translate query '{query_text}': {e}")
-        else:
-            return typechat.Success(result)  # type: ignore  # Types are structurally compatible
-    else:
-        return await translator.translate(query_text, prompt_preamble=prompt_preamble)
+    # print("[" * 50)
+    # print(translator.schema_str)
+    # print("]" * 50)
+    return await translator.translate(query_text, prompt_preamble=prompt_preamble)

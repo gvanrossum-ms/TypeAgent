@@ -24,8 +24,8 @@ def get_time_range_prompt_section_for_conversation[
             time_range.end.replace(tzinfo=None).isoformat() if time_range.end else "now"
         )
         return typechat.PromptSection(
-            role="assistant",
-            content=f"\nONLY IF user request explicitly asks for time ranges, "
+            role="system",
+            content=f"ONLY IF user request explicitly asks for time ranges, "
             f'THEN use the CONVERSATION TIME RANGE: "{start} to {end}"',
         )
 

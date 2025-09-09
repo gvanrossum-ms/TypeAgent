@@ -80,58 +80,11 @@ def temp_db_path() -> Generator[str, None, None]:
         os.remove(path)
 
 
-@pytest.mark.asyncio
-async def test_sqlite_storage_provider_message_collection(
-    dummy_sqlite_storage_provider: SqliteStorageProvider[DummyMessage],
-):
-    collection = await dummy_sqlite_storage_provider.get_message_collection()
-    assert collection.is_persistent
-    assert await collection.size() == 0
+# SQLite-specific collection tests removed - now covered by test_storage_providers_unified.py
+# test_sqlite_storage_provider_message_collection - covered by test_collection_operations_comprehensive  
+# test_sqlite_storage_provider_semantic_ref_collection - covered by test_semantic_ref_collection_basic_operations
 
-    msg = DummyMessage(["hello"])
-    await collection.append(msg)
-    assert await collection.size() == 1
-    # get_item and async iteration
-    loaded = await collection.get_item(0)
-    assert isinstance(loaded, DummyMessage)
-    assert loaded.text_chunks == ["hello"]
-    collection_list = [item async for item in collection]
-    assert collection_list[0].text_chunks == ["hello"]
-    await collection.append(DummyMessage(["world"]))
-    await collection.append(DummyMessage(["foo", "bar"]))
-    assert await collection.size() == 3
-    # slice
-    slice_result = await collection.get_slice(1, 3)
-    assert [msg.text_chunks[0] for msg in slice_result] == [
-        "world",
-        "foo",
-    ]
-    # multiple get
-    multiple_result = await collection.get_multiple([0, 2])
-    assert [msg.text_chunks[0] for msg in multiple_result] == [
-        "hello",
-        "foo",
-    ]
-
-
-@pytest.mark.asyncio
-async def test_sqlite_storage_provider_semantic_ref_collection(
-    dummy_sqlite_storage_provider: SqliteStorageProvider[DummyMessage],
-):
-    collection = await dummy_sqlite_storage_provider.get_semantic_ref_collection()
-    assert collection.is_persistent
-    assert await collection.size() == 0
-
-    # Create a dummy SemanticRef
-    ref = make_dummy_semantic_ref()
-
-    await collection.append(ref)
-    assert await collection.size() == 1
-    loaded = await collection.get_item(0)
-    assert isinstance(loaded, SemanticRef)
-    assert loaded.semantic_ref_ordinal == 0
-    collection_list = [item async for item in collection]
-    assert collection_list[0].semantic_ref_ordinal == 0
+# Keep SQLite-specific append/get tests that test exact implementation behavior
 
 
 @pytest.mark.asyncio

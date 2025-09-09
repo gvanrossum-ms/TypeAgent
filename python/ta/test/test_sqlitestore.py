@@ -80,9 +80,6 @@ def temp_db_path() -> Generator[str, None, None]:
         os.remove(path)
 
 
-
-
-
 @pytest.mark.asyncio
 async def test_sqlite_message_collection_append_and_get(
     dummy_sqlite_storage_provider: SqliteStorageProvider[DummyMessage],

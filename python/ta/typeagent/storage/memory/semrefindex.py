@@ -5,6 +5,11 @@ from __future__ import annotations
 
 from collections.abc import AsyncIterable, Callable
 
+# Import patch first
+try:
+    import typechat_patch
+except ImportError:
+    pass
 from typechat import Failure
 
 from ...knowpro import convknowledge, kplib, secindex

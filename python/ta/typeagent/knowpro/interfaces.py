@@ -19,7 +19,16 @@ from typing import (
 )
 
 import typechat
+from typing import TypeVar, Generic
 from pydantic.dataclasses import dataclass
+
+# Temporary patch for typechat.Result if it doesn't exist
+if not hasattr(typechat, 'Result'):
+    T = TypeVar('T')
+    class Result(Generic[T]):
+        """Temporary stub for typechat.Result"""
+        pass
+    typechat.Result = Result
 from pydantic import Field, AliasChoices
 
 from ..aitools.embeddings import NormalizedEmbeddings

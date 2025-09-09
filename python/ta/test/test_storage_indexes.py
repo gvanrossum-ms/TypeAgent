@@ -52,4 +52,3 @@ async def test_index_persistence(
 
     prop1 = await memory_storage.get_property_index()
     prop2 = await memory_storage.get_property_index()
-

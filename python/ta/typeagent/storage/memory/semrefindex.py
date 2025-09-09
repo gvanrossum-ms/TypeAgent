@@ -1,10 +1,9 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
-from __future__ import annotations
+from __future__ import annotations  # TODO: Avoid
 
 from collections.abc import AsyncIterable, Callable
-
 
 from typechat import Failure
 

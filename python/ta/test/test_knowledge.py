@@ -4,11 +4,7 @@
 import pytest
 from typing import cast
 
-# Import patch first
-try:
-    import typechat_patch
-except ImportError:
-    pass
+
 from typechat import Result, Failure, Success
 
 from typeagent.knowpro.knowledge import (

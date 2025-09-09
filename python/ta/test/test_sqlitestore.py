@@ -80,11 +80,7 @@ def temp_db_path() -> Generator[str, None, None]:
         os.remove(path)
 
 
-# SQLite-specific collection tests removed - now covered by test_storage_providers_unified.py
-# test_sqlite_storage_provider_message_collection - covered by test_collection_operations_comprehensive  
-# test_sqlite_storage_provider_semantic_ref_collection - covered by test_semantic_ref_collection_basic_operations
 
-# Keep SQLite-specific append/get tests that test exact implementation behavior
 
 
 @pytest.mark.asyncio

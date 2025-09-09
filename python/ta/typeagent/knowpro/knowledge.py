@@ -1,11 +1,7 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
-# Import patch first
-try:
-    import typechat_patch
-except ImportError:
-    pass
+
 from typechat import Result, TypeChatLanguageModel
 
 from . import convknowledge

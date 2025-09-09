@@ -52,8 +52,4 @@ async def test_index_persistence(
 
     prop1 = await memory_storage.get_property_index()
     prop2 = await memory_storage.get_property_index()
-# Memory-specific index tests removed - now covered by test_storage_providers_unified.py
-# test_indexes_work_independently - covered by test_storage_provider_independence
-# test_storage_provider_collections_still_work - covered by test_collection_operations_comprehensive
-# test_all_index_creation - covered by test_all_index_creation (unified)
-# test_index_persistence - covered by test_index_persistence (unified)
+

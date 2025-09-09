@@ -1,7 +1,6 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
-
 from typechat import Result, TypeChatLanguageModel
 
 from . import convknowledge

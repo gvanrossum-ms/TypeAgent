@@ -595,6 +595,8 @@ async def test_storage_provider_independence(
     fd2, temp_path2 = tempfile.mkstemp(suffix=".sqlite")
     os.close(fd2)
 
+    sqlite_provider1 = None
+    sqlite_provider2 = None
     try:
         sqlite_provider1 = SqliteStorageProvider(
             db_path=temp_path1,
@@ -644,8 +646,8 @@ async def test_storage_provider_independence(
 
     finally:
         # Cleanup
-        await sqlite_provider1.close()
-        await sqlite_provider2.close()
+        del sqlite_provider1
+        del sqlite_provider2
         if os.path.exists(temp_path1):
             os.remove(temp_path1)
         if os.path.exists(temp_path2):

@@ -18,10 +18,9 @@ from typing import (
     runtime_checkable,
 )
 
-from typing import TypeVar, Generic
 from pydantic.dataclasses import dataclass
-import typechat
 from pydantic import Field, AliasChoices
+import typechat
 
 from ..aitools.embeddings import NormalizedEmbeddings
 from . import kplib

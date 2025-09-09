@@ -4,7 +4,6 @@
 import pytest
 from typing import cast
 
-
 from typechat import Result, Failure, Success
 
 from typeagent.knowpro.knowledge import (
